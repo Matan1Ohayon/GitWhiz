@@ -1,0 +1,14 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ChromaDB
+chroma_db/
+
+# MacOS
+.DS_Store
