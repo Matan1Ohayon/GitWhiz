@@ -32,7 +32,7 @@ async def ingest_repo(request: RepoRequest):
 
         chunks_count = index_files(repo_name, contents)
 
-        # יצירת Overview עם Claude
+        # Create an overview with Claude
         overview = await generate_overview(repo_name, contents)
 
         return {
@@ -48,13 +48,13 @@ async def ingest_repo(request: RepoRequest):
 
 
 async def generate_overview(repo_name: str, files: list) -> dict:
-    """מייצר Overview מלא של ה-repo עם Claude"""
+    """Generates a full overview of the repo with Claude"""
 
-    # לוקחים את הקבצים החשובים ביותר
+    # Select the most important files
     important_files = ["README.md", "package.json", "requirements.txt", "main.py", "App.jsx", "App.tsx"]
     context_files = [f for f in files if any(f["path"].endswith(imp) or f["path"] == imp for imp in important_files)]
 
-    # אם לא מצאנו קבצים חשובים, לוקחים את 5 הראשונים
+    # If no important files are found, take the first 5 files
     if not context_files:
         context_files = files[:5]
 
