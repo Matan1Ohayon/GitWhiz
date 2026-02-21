@@ -6,7 +6,16 @@ import os
 # Persistent storage so indexed repos survive server restarts
 CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "chroma_data")
 client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
-model = SentenceTransformer("all-MiniLM-L6-v2")
+
+_model = None
+
+
+def _get_model():
+    """Lazy load the model - only download on first use. Speeds up Render startup."""
+    global _model
+    if _model is None:
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+    return _model
 
 
 def _safe_collection_name(repo_name: str) -> str:
@@ -49,7 +58,7 @@ def index_files(repo_name: str, files: list) -> int:
         chunks = chunk_text(file["content"])
         for i, chunk in enumerate(chunks):
             chunk_id = hashlib.md5(f"{file['path']}_{i}".encode()).hexdigest()
-            embedding = model.encode(chunk).tolist()
+            embedding = _get_model().encode(chunk).tolist()
             
             all_chunks.append(chunk)
             all_embeddings.append(embedding)
@@ -69,7 +78,7 @@ def index_files(repo_name: str, files: list) -> int:
 def search(repo_name: str, query: str, n_results: int = 5) -> list:
     """Searches for chunks relevant to the question"""
     collection = get_or_create_collection(repo_name)
-    query_embedding = model.encode(query).tolist()
+    query_embedding = _get_model().encode(query).tolist()
     
     results = collection.query(
         query_embeddings=[query_embedding],
