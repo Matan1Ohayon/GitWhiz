@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ingestRepo } from '../services/api'
+import { ingestRepo, RateLimitError } from '../services/api'
 import { Link2, Brain } from 'lucide-react'
 
+const GITHUB_URL_REGEX = /^https?:\/\/github\.com\/[\w.\-]+\/[\w.\-]+\/?$/
 
 const loadingMsgs = [
   "Reading files so you don't have to...",
@@ -21,6 +22,12 @@ export default function LandingPage({ setRepoData }) {
 
   async function handleWhiz() {
     if (!url) return
+
+    if (!GITHUB_URL_REGEX.test(url.trim())) {
+      setError('Invalid URL. Please paste a valid GitHub repo link (e.g. https://github.com/owner/repo)')
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -33,7 +40,11 @@ export default function LandingPage({ setRepoData }) {
       setRepoData(data)
       navigate('/dashboard')
     } catch (e) {
-      setError('Something went wrong. Check the URL and try again.')
+      if (e instanceof RateLimitError) {
+        setError('Daily limit reached — you can analyze up to 5 repos per day. Come back tomorrow!')
+      } else {
+        setError(e.message || 'Something went wrong. Check the URL and try again.')
+      }
     } finally {
       clearInterval(interval)
       setLoading(false)
