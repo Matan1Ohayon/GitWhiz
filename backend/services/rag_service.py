@@ -1,15 +1,31 @@
 import chromadb
 from sentence_transformers import SentenceTransformer
 import hashlib
+import os
 
-# Initialize ChromaDB and the embeddings model
-client = chromadb.Client()
+# Persistent storage so indexed repos survive server restarts
+CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "chroma_data")
+client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 model = SentenceTransformer("all-MiniLM-L6-v2")
+
+
+def _safe_collection_name(repo_name: str) -> str:
+    return repo_name.replace("/", "_").replace("-", "_")
+
 
 def get_or_create_collection(repo_name: str):
     """Creates or retrieves a collection by the repo name"""
-    safe_name = repo_name.replace("/", "_").replace("-", "_")
-    return client.get_or_create_collection(name=safe_name)
+    return client.get_or_create_collection(name=_safe_collection_name(repo_name))
+
+
+def collection_exists(repo_name: str) -> bool:
+    """Checks if a repo has already been indexed"""
+    safe_name = _safe_collection_name(repo_name)
+    try:
+        col = client.get_collection(name=safe_name)
+        return col.count() > 0
+    except Exception:
+        return False
 
 def chunk_text(text: str, chunk_size: int = 500) -> list[str]:
     """Splits text into small chunks"""
