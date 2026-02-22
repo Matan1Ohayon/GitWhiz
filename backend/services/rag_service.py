@@ -7,33 +7,29 @@ import httpx
 CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "chroma_data")
 client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
-HF_EMBED_URL = "https://api-inference.huggingface.co/models/BAAI/bge-small-en-v1.5"
-BATCH_SIZE = 32  # HF API batch limit
+# Open Text Embeddings - free API, no key, 1000 req/hr
+OTE_URL = "https://api.opentextembeddings.com/v1/embeddings"
+OTE_MODEL = "bge-base-en"  # 768 dims
+BATCH_SIZE = 25  # keep batches reasonable
 
 
 def _encode(texts: list[str]) -> list[list[float]]:
-    """Encode via Hugging Face Inference API - zero local memory, no OOM."""
+    """Encode via Open Text Embeddings API - free, no token, zero local memory."""
     if not texts:
         return []
-    token = os.getenv("HF_TOKEN")
-    if not token:
-        raise RuntimeError("HF_TOKEN required for embeddings. Get a free token at huggingface.co/settings/tokens")
     all_embeddings = []
     for i in range(0, len(texts), BATCH_SIZE):
         batch = texts[i : i + BATCH_SIZE]
-        with httpx.Client(timeout=60) as c:
+        with httpx.Client(timeout=90) as c:
             r = c.post(
-                HF_EMBED_URL,
-                headers={"Authorization": f"Bearer {token}"},
-                json={"inputs": batch},
+                OTE_URL,
+                headers={"Content-Type": "application/json"},
+                json={"model": OTE_MODEL, "input": batch},
             )
             r.raise_for_status()
             data = r.json()
-        if isinstance(data, dict) and "error" in data:
-            raise RuntimeError(f"HF API error: {data.get('error')}")
-        if isinstance(data[0], float):
-            data = [data]
-        all_embeddings.extend([emb if isinstance(emb, list) else emb.tolist() for emb in data])
+        for item in data["data"]:
+            all_embeddings.append(item["embedding"])
     return all_embeddings
 
 
