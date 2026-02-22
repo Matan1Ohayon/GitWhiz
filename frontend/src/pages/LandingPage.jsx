@@ -59,28 +59,28 @@ export default function LandingPage({ setRepoData }) {
   )
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-57px)] sm:min-h-[calc(100vh-73px)] px-4 sm:px-6 text-center">
+    <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-4 sm:px-6 text-center py-4 md:py-6">
       {/* EYEBROW */}
-      <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium tracking-widest uppercase text-cyan border border-cyan/20 bg-cyan/5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mb-5 sm:mb-8">
+      <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium tracking-widest uppercase text-cyan border border-cyan/20 bg-cyan/5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mb-3 sm:mb-4 lg:mb-5">
         <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />
         Understand any repo in seconds
       </div>
 
       {/* HEADLINE */}
-      <h1 className="font-syne font-extrabold text-4xl sm:text-6xl md:text-8xl leading-none tracking-tighter mb-4 sm:mb-5">
+      <h1 className="font-syne font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-none tracking-tighter mb-3 sm:mb-4 lg:mb-5">
         Stop reading.<br />
         <span className="bg-gradient-to-r from-cyan to-rose bg-clip-text text-transparent">
           Start Whizzing.
         </span>
       </h1>
 
-      <p className="text-[#0f1f36]/40 dark:text-white/40 font-light text-sm sm:text-lg max-w-md leading-relaxed mb-8 sm:mb-12">
+      <p className="text-[#0f1f36]/40 dark:text-white/40 font-light text-sm sm:text-lg max-w-md leading-relaxed mb-4 sm:mb-6 lg:mb-8">
         Paste a GitHub URL. Get an instant explanation, architecture breakdown,
         and an AI chatbot that knows the codebase inside out.
       </p>
 
       {/* INPUT */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center w-full max-w-xl bg-white border border-gray-200 dark:bg-[#0f1724] dark:border-white/10 rounded-2xl px-3 sm:px-5 py-2 gap-2 sm:gap-3 mb-4 focus-within:border-cyan transition-all">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center w-full max-w-xl bg-white border border-gray-200 dark:bg-[#0f1724] dark:border-white/10 rounded-2xl px-3 sm:px-5 py-2 gap-2 sm:gap-3 mb-3 lg:mb-4 focus-within:border-cyan transition-all">
         <div className="flex items-center gap-2 sm:gap-3 flex-1">
           <span className="text-lg"><Link2/></span>
           <input
@@ -101,10 +101,10 @@ export default function LandingPage({ setRepoData }) {
         </button>
       </div>
 
-      {error && <p className="text-rose text-xs sm:text-sm mb-4">{error}</p>}
+      {error && <p className="text-rose text-xs sm:text-sm mb-3">{error}</p>}
 
       {/* STATS */}
-      <div className="flex gap-6 sm:gap-10 mt-4">
+      <div className="flex gap-6 sm:gap-10 mt-2 lg:mt-4 flex-shrink-0">
         {[['2.3s', 'avg analysis time'], ['∞', 'repo size support'], ['RAG', 'powered search']].map(([num, label]) => (
           <div key={label} className="text-center">
             <div className="font-syne font-extrabold text-2xl sm:text-3xl bg-gradient-to-r from-cyan to-rose bg-clip-text text-transparent">{num}</div>
