@@ -42,6 +42,11 @@ A web app that lets you paste any **GitHub repository URL**, ingest its code, an
 
 ## 📸 Screenshots
 
+<p align="center">
+    <img src="screenshots/landingpage.png" width="400"/>
+    <img src="screenshots/dashboard.png" width="400"/>
+    <img src="screenshots/chat.png" width="400"/>
+</p>
 
 
 ---
