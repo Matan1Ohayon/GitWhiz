@@ -6,7 +6,8 @@ from routers import ingest,chat
 
 app = FastAPI(title="GitWhiz API")
 
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+_raw = os.getenv("ALLOWED_ORIGINS", "").strip()
+ALLOWED_ORIGINS = ["*"] if not _raw else [o.strip() for o in _raw.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,

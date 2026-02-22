@@ -1,4 +1,7 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8080/api'
+// In dev, use proxy (no CORS). In prod, use VITE_API_URL.
+const BASE_URL = import.meta.env.DEV
+  ? '/api'
+  : (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8080/api').replace(/\/$/, '')
 
 class RateLimitError extends Error {
   constructor() {
@@ -16,8 +19,9 @@ async function handleResponse(res) {
       const body = JSON.parse(text)
       detail = body.detail || body.message || ''
     } catch {
-      if (text.includes('502') || text.includes('Bad Gateway')) detail = 'Backend is unavailable (502). Try again later.'
-      else if (text.includes('503')) detail = 'Service temporarily unavailable (503). Try again later.'
+      if (res.status === 503 || text.includes('almost ready') || text.includes('Bad Gateway'))
+        detail = 'The backend is starting up (cold start). Wait a few seconds and try again.'
+      else if (res.status === 502) detail = 'Backend is unavailable (502). Try again later.'
       else if (res.status === 404) detail = 'API endpoint not found. Check VITE_API_URL.'
       else if (res.status === 0) detail = 'Connection failed. Check CORS or network.'
       else detail = `Request failed (${res.status}).`
