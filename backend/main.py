@@ -6,7 +6,7 @@ from routers import ingest, chat
 app = FastAPI(title="GitWhiz API")
 
 _raw = os.getenv("ALLOWED_ORIGINS", "").strip()
-ALLOWED_ORIGINS = ["*"] if not _raw else [o.strip() for o in _raw.split(",") if o.strip()]
+ALLOWED_ORIGINS = ["*"] if not _raw else [o.strip().rstrip("/") for o in _raw.split(",") if o.strip()]
 
 
 def _get_origin(scope: dict) -> bytes:
@@ -21,8 +21,13 @@ def _cors_headers(scope: dict) -> list:
     if "*" in ALLOWED_ORIGINS:
         origin = b"*"
     else:
+        # Normalise: browser sends origin without trailing slash
+        origin_str = origin.decode("utf-8", errors="replace").rstrip("/")
+        origin_bytes = origin_str.encode()
         allowed = [o.encode() if isinstance(o, str) else o for o in ALLOWED_ORIGINS]
-        if origin not in allowed and allowed:
+        if origin_bytes in allowed:
+            origin = origin_bytes
+        elif allowed:
             origin = allowed[0]
     return [
         [b"access-control-allow-origin", origin],
