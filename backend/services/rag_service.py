@@ -7,7 +7,7 @@ import httpx
 CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "chroma_data")
 client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
-HF_EMBED_URL = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
+HF_EMBED_URL = "https://api-inference.huggingface.co/models/BAAI/bge-small-en-v1.5"
 BATCH_SIZE = 32  # HF API batch limit
 
 
