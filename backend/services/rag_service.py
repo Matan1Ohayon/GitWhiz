@@ -7,29 +7,31 @@ import httpx
 CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "chroma_data")
 client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
-# Open Text Embeddings - free API, no key, 1000 req/hr
-OTE_URL = "https://api.opentextembeddings.com/v1/embeddings"
-OTE_MODEL = "bge-base-en"  # 768 dims
-BATCH_SIZE = 25  # keep batches reasonable
+# Cohere Embed - free tier, reliable. Get key at dashboard.cohere.com
+COHERE_URL = "https://api.cohere.com/v1/embed"
+COHERE_MODEL = "embed-english-light-v3.0"  # 384 dims
+BATCH_SIZE = 96  # Cohere max per call
 
 
-def _encode(texts: list[str]) -> list[list[float]]:
-    """Encode via Open Text Embeddings API - free, no token, zero local memory."""
+def _encode(texts: list[str], input_type: str = "search_document") -> list[list[float]]:
+    """Encode via Cohere API - free tier, zero local memory."""
     if not texts:
         return []
+    key = os.getenv("COHERE_API_KEY")
+    if not key:
+        raise RuntimeError("COHERE_API_KEY required. Get a free key at dashboard.cohere.com")
     all_embeddings = []
     for i in range(0, len(texts), BATCH_SIZE):
         batch = texts[i : i + BATCH_SIZE]
         with httpx.Client(timeout=90) as c:
             r = c.post(
-                OTE_URL,
-                headers={"Content-Type": "application/json"},
-                json={"model": OTE_MODEL, "input": batch},
+                COHERE_URL,
+                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                json={"texts": batch, "model": COHERE_MODEL, "input_type": input_type},
             )
             r.raise_for_status()
             data = r.json()
-        for item in data["data"]:
-            all_embeddings.append(item["embedding"])
+        all_embeddings.extend(data["embeddings"])
     return all_embeddings
 
 
@@ -91,7 +93,7 @@ def index_files(repo_name: str, files: list) -> int:
 def search(repo_name: str, query: str, n_results: int = 5) -> list:
     """Searches for chunks relevant to the question"""
     collection = get_or_create_collection(repo_name)
-    query_embedding = _encode([query])[0]
+    query_embedding = _encode([query], input_type="search_query")[0]
     
     results = collection.query(
         query_embeddings=[query_embedding],
