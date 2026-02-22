@@ -1,29 +1,40 @@
 import chromadb
-from fastembed import TextEmbedding
 import hashlib
 import os
+import httpx
 
 # Persistent storage so indexed repos survive server restarts
 CHROMA_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "chroma_data")
 client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
-_model = None
-
-
-def _get_model():
-    """Lazy load the model - only download on first use. Lightweight (no PyTorch)."""
-    global _model
-    if _model is None:
-        _model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
-    return _model
+HF_EMBED_URL = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
+BATCH_SIZE = 32  # HF API batch limit
 
 
 def _encode(texts: list[str]) -> list[list[float]]:
-    """Encode texts to embeddings (list of lists for ChromaDB)."""
+    """Encode via Hugging Face Inference API - zero local memory, no OOM."""
     if not texts:
         return []
-    model = _get_model()
-    return [emb.tolist() for emb in model.embed(texts)]
+    token = os.getenv("HF_TOKEN")
+    if not token:
+        raise RuntimeError("HF_TOKEN required for embeddings. Get a free token at huggingface.co/settings/tokens")
+    all_embeddings = []
+    for i in range(0, len(texts), BATCH_SIZE):
+        batch = texts[i : i + BATCH_SIZE]
+        with httpx.Client(timeout=60) as c:
+            r = c.post(
+                HF_EMBED_URL,
+                headers={"Authorization": f"Bearer {token}"},
+                json={"inputs": batch},
+            )
+            r.raise_for_status()
+            data = r.json()
+        if isinstance(data, dict) and "error" in data:
+            raise RuntimeError(f"HF API error: {data.get('error')}")
+        if isinstance(data[0], float):
+            data = [data]
+        all_embeddings.extend([emb if isinstance(emb, list) else emb.tolist() for emb in data])
+    return all_embeddings
 
 
 def _safe_collection_name(repo_name: str) -> str:

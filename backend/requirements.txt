@@ -4,6 +4,5 @@ httpx
 python-dotenv
 chromadb==0.4.24
 numpy==1.26.4
-fastembed
 anthropic
 slowapi
