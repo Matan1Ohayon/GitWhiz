@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { streamMessage, RateLimitError } from '../services/api'
 
 const MAX_QUESTION_LENGTH = 1000
@@ -113,8 +114,13 @@ export default function Chat({ repoName }) {
                     prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-xl prose-pre:overflow-x-auto dark:prose-pre:bg-white/5 dark:prose-pre:border-white/10
                     prose-strong:text-[#0f1f36] prose-strong:font-semibold dark:prose-strong:text-white
                     prose-ul:my-1 prose-li:my-0.5
-                    prose-headings:text-[#0f1f36] prose-headings:font-syne dark:prose-headings:text-white">
-                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                    prose-headings:text-[#0f1f36] prose-headings:font-syne dark:prose-headings:text-white
+                    prose-table:my-2 prose-table:text-left prose-table:w-full
+                    prose-th:border prose-th:border-gray-200 dark:prose-th:border-white/20 prose-th:bg-gray-100 dark:prose-th:bg-white/10 prose-th:px-2 prose-th:py-1.5 prose-th:font-semibold
+                    prose-td:border prose-td:border-gray-200 dark:prose-td:border-white/20 prose-td:px-2 prose-td:py-1.5">
+                    <div className="overflow-x-auto">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                    </div>
                   </div>
                 ) : msg.text}
               </div>
