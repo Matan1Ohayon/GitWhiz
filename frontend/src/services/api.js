@@ -10,19 +10,40 @@ class RateLimitError extends Error {
 async function handleResponse(res) {
   if (res.status === 429) throw new RateLimitError()
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail || 'Something went wrong')
+    const text = await res.text()
+    let detail = ''
+    try {
+      const body = JSON.parse(text)
+      detail = body.detail || body.message || ''
+    } catch {
+      if (text.includes('502') || text.includes('Bad Gateway')) detail = 'Backend is unavailable (502). Try again later.'
+      else if (text.includes('503')) detail = 'Service temporarily unavailable (503). Try again later.'
+      else if (res.status === 404) detail = 'API endpoint not found. Check VITE_API_URL.'
+      else if (res.status === 0) detail = 'Connection failed. Check CORS or network.'
+      else detail = `Request failed (${res.status}).`
+    }
+    const msg = detail || `Request failed (${res.status}). Something went wrong.`
+    console.error('[API Error]', res.status, res.url, msg, text?.slice(0, 200))
+    throw new Error(msg)
   }
   return res.json()
 }
 
 export async function ingestRepo(url) {
-  const res = await fetch(`${BASE_URL}/ingest`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url })
-  })
-  return handleResponse(res)
+  try {
+    const res = await fetch(`${BASE_URL}/ingest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    })
+    return handleResponse(res)
+  } catch (e) {
+    if (e instanceof RateLimitError) throw e
+    const msg = e.message || ''
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed'))
+      throw new Error('Cannot reach the API. Check VITE_API_URL, CORS, or that the backend is running.')
+    throw e
+  }
 }
 
 export async function streamMessage(repoName, question, history, { onChunk, onSources, onError }) {
