@@ -1,6 +1,8 @@
 # 🧠 GitWhiz - AI Codebase Q&A
 
-A web app that lets you paste any **GitHub repository URL**, ingest its code, and **chat with an AI** that knows the full codebase. Built with a **Hybrid Architecture** (Python FastAPI + React). Uses **RAG** (Retrieval-Augmented Generation) with semantic search so answers are grounded in the actual files—no guessing.
+A web app that lets you paste any **GitHub repository URL**, ingest its code, and **chat with an AI** that knows the full codebase. Built with a **Hybrid Architecture** (Python FastAPI + React). Uses **RAG** (Retrieval-Augmented Generation) with semantic search so answers are grounded in the actual files—no guessing.  
+  
+**Try the live demo:** [GitWhiz](https://gitwhiz.vercel.app)
 
 ---
 
@@ -40,11 +42,7 @@ A web app that lets you paste any **GitHub repository URL**, ingest its code, an
 
 ## 📸 Screenshots
 
-<p align="center">
-  <img src="screenshots/landingpage.png" width="400"/>
-  <img src="screenshots/dashboard.png" width="400"/>
-  <img src="screenshots/chat.png" width="400"/>
-</p>
+
 
 ---
 
@@ -122,9 +120,7 @@ Open the URL shown (e.g. `http://localhost:5173`), paste a GitHub repo URL, and 
 This project demonstrates a powerful **Hybrid Architecture** combining a robust Python backend with a dynamic React frontend:
 
 - **The Backend (FastAPI):** Handles the ingestion pipeline—validating GitHub URLs, fetching file trees, chunking text, and generating embeddings via Cohere. It stores everything in ChromaDB. For chat, it runs similarity searches and streams Claude's responses directly to the client.
-
 - **The Frontend (React):** Provides a seamless user experience. It captures GitHub URLs, displays an AI-generated project overview (with tabs for Architecture and Getting Started), and features a chat panel that handles server-sent events (SSE) for real-time typing and source citations.
-
 - **The RAG Flow:** Code is split into logical chunks and embedded. When a user asks a question, it is converted into a search query. The most relevant chunks are retrieved from ChromaDB and fed into Claude as context, ensuring answers are strictly grounded in the real codebase.
 
 ---
@@ -172,6 +168,7 @@ All Rights Reserved | Matan Ohayon © 2026
 
 ## 📬 Contact
 
-- 🌐 Portfolio: https://matans-portfolio.vercel.app/
+- 🌐 Portfolio: [https://matans-portfolio.vercel.app/](https://matans-portfolio.vercel.app/)
 - 💼 LinkedIn: [Matan Ohayon](https://www.linkedin.com/in/matan-ohayon-4101b6276/)
-- 📧 Email: matan1ohayon@gmail.com
+- 📧 Email: [matan1ohayon@gmail.com](mailto:matan1ohayon@gmail.com)
+
