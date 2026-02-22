@@ -1,7 +1,7 @@
 // In dev, use proxy (no CORS). In prod, use VITE_API_URL.
 const BASE_URL = import.meta.env.DEV
   ? '/api'
-  : (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8080/api').replace(/\/$/, '')
+  : (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/').replace(/\/$/, '')
 
 class RateLimitError extends Error {
   constructor() {

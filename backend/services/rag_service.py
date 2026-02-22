@@ -1,5 +1,5 @@
 import chromadb
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 import hashlib
 import os
 
@@ -11,11 +11,19 @@ _model = None
 
 
 def _get_model():
-    """Lazy load the model - only download on first use. Speeds up Render startup."""
+    """Lazy load the model - only download on first use. Lightweight (no PyTorch)."""
     global _model
     if _model is None:
-        _model = SentenceTransformer("all-MiniLM-L6-v2")
+        _model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
     return _model
+
+
+def _encode(texts: list[str]) -> list[list[float]]:
+    """Encode texts to embeddings (list of lists for ChromaDB)."""
+    if not texts:
+        return []
+    model = _get_model()
+    return [emb.tolist() for emb in model.embed(texts)]
 
 
 def _safe_collection_name(repo_name: str) -> str:
@@ -58,14 +66,12 @@ def index_files(repo_name: str, files: list) -> int:
         chunks = chunk_text(file["content"])
         for i, chunk in enumerate(chunks):
             chunk_id = hashlib.md5(f"{file['path']}_{i}".encode()).hexdigest()
-            embedding = _get_model().encode(chunk).tolist()
-            
             all_chunks.append(chunk)
-            all_embeddings.append(embedding)
             all_ids.append(chunk_id)
             all_metadata.append({"path": file["path"]})
 
     if all_chunks:
+        all_embeddings = _encode(all_chunks)
         collection.add(
             documents=all_chunks,
             embeddings=all_embeddings,
@@ -78,7 +84,7 @@ def index_files(repo_name: str, files: list) -> int:
 def search(repo_name: str, query: str, n_results: int = 5) -> list:
     """Searches for chunks relevant to the question"""
     collection = get_or_create_collection(repo_name)
-    query_embedding = _get_model().encode(query).tolist()
+    query_embedding = _encode([query])[0]
     
     results = collection.query(
         query_embeddings=[query_embedding],

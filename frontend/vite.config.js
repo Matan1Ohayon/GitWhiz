@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://vocal-aurel-matan-179c5675.koyeb.app',
+        target: process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
     },
